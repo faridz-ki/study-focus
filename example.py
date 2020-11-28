@@ -6,20 +6,49 @@ Check the README.md for complete documentation.
 import cv2
 from gaze_tracking import GazeTracking
 from datetime import datetime
+from tkinter import *
+from time import sleep, time
 
 gaze = GazeTracking()
 webcam = cv2.VideoCapture(0)
 working = True
+screen_size = []
 
-work_time = int(input("Enter the number of minutes you want to work for\n")) * 60
+work_time = 20 # int(input("Enter the number of minutes you want to work for\n")) * 60
+break_time = 20 # int(input("Enter the number of minutes you want to rest for\n")) * 60
 
-break_time = int(input("Enter the number of minutes you want to rest for\n")) * 60
+root = Tk()
+root.attributes('-fullscreen', True)
+root.update_idletasks()
+w = root.winfo_screenwidth()
+h = root.winfo_screenheight()
+root.bind("<Escape>", lambda e: e.widget.quit())
 
-start_time = datetime.now()
+coords = [(10, 10, 30, 30), (w-10, h-10, w-40, h-40) ]
 
-while True:
-    # We get a new frame from the webcam
-    _, frame = webcam.read()
+canvas =  Canvas(root, bg='black', width=w, height=h)
+canvas.pack()
+
+def callabirate():
+    global temp
+    instrct = canvas.create_text(w/2,h/2,fill="White", text="Look at the blue dot")
+    for i in coords:
+        temp = canvas.create_oval(i, outline='blue', fill='blue')
+        _, frame = webcam.read()
+        gaze.refresh(frame)
+        frame = gaze.annotated_frame()
+        screen_size.append(gaze.horizontal_ratio())
+        screen_size.append(gaze.vertical_ratio())
+        root.after(1000, canvas.delete(temp))
+
+    canvas.delete(instrct)
+
+def delete(a):
+    canvas.delete(a)
+
+def main():
+    working = True
+    start_time = datetime.now()
     if working:
         #check eyes on screen
         x = 1 #placeholder
@@ -37,29 +66,27 @@ while True:
         else:
             working = not working
             start_time = datetime.now()
-    # We send this frame to GazeTracking to analyze it
+    
+    warning = ""
+    _, frame = webcam.read()
     gaze.refresh(frame)
-
     frame = gaze.annotated_frame()
-    text = ""
 
-    if gaze.is_blinking():
-        text = "Blinking"
-    elif gaze.is_right():
-        text = "Looking right"
-    elif gaze.is_left():
-        text = "Looking left"
-    elif gaze.is_center():
-        text = "Looking center"
-        
-    cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
+    h_ratio = gaze.horizontal_ratio()
+    v_ratio = gaze.vertical_ratio()
 
-    left_pupil = gaze.pupil_left_coords()
-    right_pupil = gaze.pupil_right_coords()
-    cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
-    cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+    try:
+        if (h_ratio < screen_size[0] or h_ratio > screen_size[2]) or (v_ratio > screen_size[1] or v_ratio < screen_size[3]):
+            warning = canvas.create_text(w/2,h/2,fill="White", text="You aren't looking in the middle")
+    except:
+        print("ERROR")
 
-    cv2.imshow("Demo", frame)
+    #sleep(3)
+    #canvas.delete(warning)
+    root.after(100, lambda: delete(warning))
+    root.after(3, main)
 
-    if cv2.waitKey(1) == 27:
-        break
+callabirate()
+main()
+
+root.mainloop()
