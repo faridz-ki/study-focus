@@ -62,12 +62,13 @@ def get_programs():
     return names
 
 
-gaze = GazeTracking()
-webcam = cv2.VideoCapture(0)
-
 callabirator = Callibrate()
 callabirator.calibrate()
 screen_size = callabirator.get_screen_size()
+callabirator.close_camera()
+
+gaze = GazeTracking()
+webcam = cv2.VideoCapture(0)
 
 window2 = Tk()
 window2.attributes('-fullscreen', True)
@@ -88,7 +89,8 @@ bad_process = False
 def main():
     global success
     global bad_count
-
+    global bad_process
+    
     _, frame = webcam.read()
     gaze.refresh(frame)
     frame = gaze.annotated_frame()
@@ -99,6 +101,7 @@ def main():
     print(h_ratio)
     print(v_ratio)
     print(screen_size)
+    print(get_processes())
 
     for item in blacklist:
         if item in get_processes():
@@ -107,7 +110,7 @@ def main():
     if h_ratio and v_ratio:
         if (1.1*h_ratio < screen_size[0] or h_ratio > 1.1*screen_size[2]) or (1.1*v_ratio  < screen_size[1] or v_ratio > 1.1*screen_size[3]) and not gaze.is_blinking():
             bad_count = bad_count + 1
-            if bad_count > 10:
+            if bad_count > 6:
                 window2.deiconify()
                 print("Print please")
                 print(bad_count)
@@ -121,7 +124,9 @@ def main():
             window2.withdraw()
     else:
         bad_count = bad_count + 1
-
+        if bad_count > 6:
+            window2.deiconify()
+            canvas2.itemconfigure(success, text="YOU ARE NOT LOOKING AT THE SCREEN")
     #sleep(3)
     #canvas.delete(warning)
     window2.after(1000, main)
