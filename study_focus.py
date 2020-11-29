@@ -16,11 +16,14 @@ system_type = system()
 
 config = ConfigParser()
 
+
 with open('config.json', 'r') as f:
     config = json.load(f)
 
 blacklist = config["blacklist"]
-
+BREAKTIME = config['BREAKTIME']
+WORKTIME = config['WORKTIME']
+FLASHTIME = config['FLASHTIME']
 
 if system_type == "Windows":
     import wmi
@@ -102,7 +105,6 @@ bad_process = False
 
 process_name = ""
 
-FLASHTIME = 3
 flash = False
 flash_on = datetime.now()
 flash_off = datetime.now()
@@ -112,8 +114,6 @@ processes = []
 pygame.init()
 pygame.mixer.init()
 
-WORKTIME = 20
-BREAKTIME = 5
 current = ""
 working = True
 
@@ -195,33 +195,36 @@ def main():
         if h_ratio and v_ratio:
             if (1.2*h_ratio < screen_size[0] or h_ratio > 1.2*screen_size[2]) or (1.2*v_ratio  < screen_size[1] or v_ratio > 1.2*screen_size[3]) and not gaze.is_blinking():
                 bad_count = bad_count + 1
-                if bad_count > 6:
-
+                if bad_count > 5:
                     window2.deiconify()
                     canvas2.itemconfigure(success, text="YOU ARE NOT LOOKING AT THE SCREEN")
-                    bark = pygame.mixer.Sound('bark.wav')
-                    bark.play()
 
 
-            elif (1.2*h_ratio > screen_size[0] or h_ratio < 1.2*screen_size[2]) or (1.2*v_ratio > screen_size[1] or v_ratio < 1.2*screen_size[3]) and not gaze.is_blinking():
+            elif (1.2*h_ratio > screen_size[0] or h_ratio < 1.2*screen_size[2]) or (1.2*v_ratio > screen_size[1] or v_ratio < 1.2*screen_size[3]):
                 bad_count = 0
                 window2.withdraw()
+
+        elif gaze.is_blinking():
+            pass
+
         else:
             bad_count = bad_count + 1
-            if bad_count > 6:
+            if bad_count > 10:
                window2.deiconify()
                canvas2.itemconfigure(success, text="YOU ARE NOT LOOKING AT THE SCREEN")
+               bark = pygame.mixer.Sound('bark.wav')
+               bark.play()
+
 
         if bad_process and flash:
             window2.deiconify()
             canvas2.itemconfigure(success, text="YOU ARE DOING SOMETHING NAUGHTY. CLOSE %s" % (process_name))
-            #bark = pygame.mixer.Sound('bark.wav')
-            #bark.play()
             if (datetime.now() - flash_on).total_seconds() > 3.0:
                 window2.withdraw()
                 flash = False
                 flash_off = datetime.now()
                 bad_process = False
+
     else:
         if h_ratio and v_ratio:
             if (1.2*h_ratio > screen_size[0] or h_ratio < 1.2*screen_size[2]) or (1.2*v_ratio  > screen_size[1] or v_ratio < 1.2*screen_size[3]) and not gaze.is_blinking():
