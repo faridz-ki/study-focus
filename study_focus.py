@@ -7,6 +7,7 @@ from focus_callabirate import Callibrate
 from platform import system
 from subprocess import check_output
 from pathlib import Path
+import os
 
 system_type = system()
 
