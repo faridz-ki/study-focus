@@ -57,7 +57,6 @@ def get_programs():
                 double_slashed = link.replace("\\", "\\\\")
                 cargs = ["wmic", "path", "win32_shortcutfile", "where", "name=\"{0}\"".format(double_slashed), "get", "target", "/value"]
                 filename = list(filter(None, check_output(cargs, startupinfo=startupinfo).splitlines()))[0]
-                print(filename)
                 if filename != b"Target=":
                     names.append(filename.split(b"\\")[-1].decode("utf-8"))
     elif system_type == "Linux":
@@ -199,15 +198,12 @@ def main():
                 if bad_count > 6:
 
                     window2.deiconify()
-                    print("Print please")
-                    print(bad_count)
                     canvas2.itemconfigure(success, text="YOU ARE NOT LOOKING AT THE SCREEN")
                     bark = pygame.mixer.Sound('bark.wav')
                     bark.play()
 
 
             elif (1.2*h_ratio > screen_size[0] or h_ratio < 1.2*screen_size[2]) or (1.2*v_ratio > screen_size[1] or v_ratio < 1.2*screen_size[3]) and not gaze.is_blinking():
-                print(bad_count)
                 bad_count = 0
                 window2.withdraw()
         else:
@@ -233,20 +229,16 @@ def main():
                 if bad_count > 6:
 
                     window2.deiconify()
-                    print("Print please")
-                    print(bad_count)
                     canvas2.itemconfigure(success, text="YOU ARE LOOKING AT THE SCREEN. TAKE A BREAK")
                     bark = pygame.mixer.Sound('bark.wav')
                     bark.play()
 
 
             elif (h_ratio < screen_size[0] or h_ratio > 1.2*screen_size[2]) or (1.2*v_ratio < screen_size[1] or v_ratio > 1.2*screen_size[3]) and not gaze.is_blinking():
-                print(bad_count)
                 bad_count = 0
                 window2.withdraw()
         else:
             bad_count = bad_count + 1
-            print(bad_count)
             if bad_count > 6:
                 window2.deiconify()
                 canvas2.itemconfigure(success, text="YOU ARE LOOKING AT THE SCREEN. TAKE A BREAK")

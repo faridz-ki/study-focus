@@ -20,8 +20,6 @@ class Callibrate(object):
     def get_screen_size(self):
         self.hori = list(filter(None, self.hori))
         self.verti = list(filter(None, self.verti))
-        print(self.hori)
-        print(self.verti)
         return [min(self.hori), min(self.verti), max(self.hori), max(self.verti)]
 
 
@@ -42,7 +40,6 @@ class Callibrate(object):
         self.canvas.pack()
         self.display = self.canvas.create_text(self.w/2, self.h/2, fill="white", text="Press enter to start. Look at the white ball.")
         self._initialise_balls()
-        print(self.canvas.coords(self.circle[0]))
         self.window1.bind("<Escape>", lambda e: e.widget.quit())
         self.window1.bind("<Return>", self._callabirate)
         self.window1.mainloop()
