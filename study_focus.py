@@ -100,7 +100,6 @@ def main():
     print(v_ratio)
     print(screen_size)
 
-    
     for item in blacklist:
         if item in get_processes():
             bad_process = True
