@@ -1,0 +1,6 @@
+{
+    "blacklist": ["firefox.exe", "chromium", "msfvenom", "burpsuite", "x-www-browser", "DTLite.exe", "AcroRd32.exe", "AMD Product Verification Tool.exe", "AVGUI.exe", "chrome.exe","msedge.exe", "Diablo II.exe", "Diablo III Launcher.exe", "Diablo III Public Test Launcher.exe", "VirtualBox.exe", "Steam.exe", "parsecd.exe", "WhatsApp.exe", "PowerShell_ISE.exe", "powershell.exe"],
+    "FLASHTIME": 3,
+    "WORKTIME": 20,
+    "BREAKTIME": 5
+}

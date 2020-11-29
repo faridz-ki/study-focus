@@ -54,11 +54,12 @@ class Callibrate(object):
     def _callabirate(self, event = None):
         self.canvas.coords(self.circle[self.i], self.coords[self.i])
         _, frame = self.webcam.read()
+        self.window1.after(2000)
         self.gaze.refresh(frame)
         frame = self.gaze.annotated_frame()
         self.hori.append(self.gaze.horizontal_ratio())
         self.verti.append(self.gaze.vertical_ratio())
-        self.window1.after(2000, self._success)
+        self.window1.after(3000, self._success)
 
     def _deleteBall(self):
         self.canvas.move(self.circle[self.i], -10000, -10000)

@@ -2,16 +2,24 @@ import cv2
 from gaze_tracking import GazeTracking
 from tkinter import *
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 from focus_callabirate import Callibrate
 from platform import system
 from subprocess import check_output
 from pathlib import Path
 import os
+import pygame
+import json
+from configparser import ConfigParser
 
 system_type = system()
 
-blacklist = ["firefox.exe", "x-www-browser"]
+config = ConfigParser()
+
+with open('config.json', 'r') as f:
+    config = json.load(f)
+
+blacklist = config["blacklist"]
 
 
 if system_type == "Windows":
@@ -70,67 +78,183 @@ callabirator.close_camera()
 gaze = GazeTracking()
 webcam = cv2.VideoCapture(0)
 
-window2 = Tk()
+root = Tk()
+root.configure()
+root.update_idletasks()
+
+window2 = Toplevel(root)
 window2.attributes('-fullscreen', True)
 window2.update_idletasks()
 w = window2.winfo_screenwidth()
 h = window2.winfo_screenheight()
+
+
 canvas2 =  Canvas(window2, bg='black', width=w, height=h)
 canvas2.pack()
 window2.withdraw()
 
 success = canvas2.create_text(w/2, h/2, fill="White", text="YOU ARE NOT LOOKING AT THE SCREEN")
 
-window2.bind("<Escape>", lambda e: e.widget.quit())
+root.bind("<Escape>", lambda e: e.widget.quit())
 
 bad_count = 0
 bad_process = False
 
+
+process_name = ""
+
+FLASHTIME = 3
+flash = False
+flash_on = datetime.now()
+flash_off = datetime.now()
+checking = 1
+processes = []
+
+pygame.init()
+pygame.mixer.init()
+
+WORKTIME = 20
+BREAKTIME = 5
+current = ""
+working = True
+
+start_time = datetime.now()
+
+canvas3 =  Canvas(root, bg='black', width=300, height=70)
+canvas3.pack()
+
+display_timer = canvas3.create_text(10, 5, fill="green", anchor=NW)
+
+notification    =canvas3.create_text(10,35,fill="red", anchor=NW)
+
+
+def timer():
+    global current
+    global working
+    global start_time
+    global timer
+    global canvas3
+    global root
+
+    if working:
+        current = str(start_time+timedelta(minutes=WORKTIME) - datetime.now())
+
+    else:
+        current = str(start_time+timedelta(minutes=BREAKTIME) -  datetime.now())
+
+    current = current.split(".")[0]
+
+    if current == "0:00:15":
+        if working:
+            canvas3.itemconfigure(notification, text="You need to take a break soon!")
+        else:
+            canvas3.itemconfigure(notification, text="You need to get back to work soon!")
+
+    if current == "0:00:00" or "-" in current:
+        window2.withdraw()
+        working = not working
+        start_time = datetime.now()
+        canvas3.itemconfigure(notification, text="")
+    canvas3.itemconfigure(display_timer, text=current)
+    root.after(1000, timer)
+
 def main():
+    global flash
+    global flash_on
+    global flash_off
+    global checking
+    global blacklist
     global success
     global bad_count
     global bad_process
-    
+    global process_name
+    global processes
+
     _, frame = webcam.read()
     gaze.refresh(frame)
     frame = gaze.annotated_frame()
-
     h_ratio = gaze.horizontal_ratio()
     v_ratio = gaze.vertical_ratio()
 
-    print(h_ratio)
-    print(v_ratio)
-    print(screen_size)
-    print(get_processes())
+    if working:
+        checking -= 1
+        if not checking:
+            checking = 5
+            processes = get_processes()
+        for item in blacklist:
+            if item in processes:
+                process_name = item
+                bad_process = True
+                break
 
-    for item in blacklist:
-        if item in get_processes():
-            bad_process = True
+        if bad_process and not flash:
+            if (datetime.now() - flash_off).total_seconds() > 3.0:
+                flash_on = datetime.now()
+                flash = True
 
-    if h_ratio and v_ratio:
-        if (1.1*h_ratio < screen_size[0] or h_ratio > 1.1*screen_size[2]) or (1.1*v_ratio  < screen_size[1] or v_ratio > 1.1*screen_size[3]) and not gaze.is_blinking():
+
+        if h_ratio and v_ratio:
+            if (1.2*h_ratio < screen_size[0] or h_ratio > 1.2*screen_size[2]) or (1.2*v_ratio  < screen_size[1] or v_ratio > 1.2*screen_size[3]) and not gaze.is_blinking():
+                bad_count = bad_count + 1
+                if bad_count > 6:
+
+                    window2.deiconify()
+                    print("Print please")
+                    print(bad_count)
+                    canvas2.itemconfigure(success, text="YOU ARE NOT LOOKING AT THE SCREEN")
+                    bark = pygame.mixer.Sound('bark.wav')
+                    bark.play()
+
+
+            elif (1.2*h_ratio > screen_size[0] or h_ratio < 1.2*screen_size[2]) or (1.2*v_ratio > screen_size[1] or v_ratio < 1.2*screen_size[3]) and not gaze.is_blinking():
+                print(bad_count)
+                bad_count = 0
+                window2.withdraw()
+        else:
             bad_count = bad_count + 1
             if bad_count > 6:
-                window2.deiconify()
-                print("Print please")
-                print(bad_count)
-                canvas2.itemconfigure(success, text="YOU ARE NOT LOOKING AT THE SCREEN")
-            elif bad_process:
-                window2.deiconify()
-                canvas2.itemconfigure(success, text="YOU ARE DOING SOMETHING NAUGHTY")
-        elif (1.1*h_ratio > screen_size[0] or h_ratio < 1.1*screen_size[2]) or (1.1*v_ratio > screen_size[1] or v_ratio < 1.1*screen_size[3]) and not gaze.is_blinking():
-            print(bad_count)
-            bad_count = 0
-            window2.withdraw()
-    else:
-        bad_count = bad_count + 1
-        if bad_count > 6:
+               window2.deiconify()
+               canvas2.itemconfigure(success, text="YOU ARE NOT LOOKING AT THE SCREEN")
+
+        if bad_process and flash:
             window2.deiconify()
-            canvas2.itemconfigure(success, text="YOU ARE NOT LOOKING AT THE SCREEN")
-    #sleep(3)
-    #canvas.delete(warning)
-    window2.after(1000, main)
+            canvas2.itemconfigure(success, text="YOU ARE DOING SOMETHING NAUGHTY. CLOSE %s" % (process_name))
+            #bark = pygame.mixer.Sound('bark.wav')
+            #bark.play()
+            if (datetime.now() - flash_on).total_seconds() > 3.0:
+                window2.withdraw()
+                flash = False
+                flash_off = datetime.now()
+                bad_process = False
+    else:
+        if h_ratio and v_ratio:
+            if (1.2*h_ratio > screen_size[0] or h_ratio < 1.2*screen_size[2]) or (1.2*v_ratio  > screen_size[1] or v_ratio < 1.2*screen_size[3]) and not gaze.is_blinking():
+                bad_count = bad_count + 1
+                if bad_count > 6:
 
-main()
+                    window2.deiconify()
+                    print("Print please")
+                    print(bad_count)
+                    canvas2.itemconfigure(success, text="YOU ARE LOOKING AT THE SCREEN. TAKE A BREAK")
+                    bark = pygame.mixer.Sound('bark.wav')
+                    bark.play()
 
-window2.mainloop()
+
+            elif (h_ratio < screen_size[0] or h_ratio > 1.2*screen_size[2]) or (1.2*v_ratio < screen_size[1] or v_ratio > 1.2*screen_size[3]) and not gaze.is_blinking():
+                print(bad_count)
+                bad_count = 0
+                window2.withdraw()
+        else:
+            bad_count = bad_count + 1
+            print(bad_count)
+            if bad_count > 6:
+                window2.deiconify()
+                canvas2.itemconfigure(success, text="YOU ARE LOOKING AT THE SCREEN. TAKE A BREAK")
+
+
+    root.after(500, main)
+
+root.after(5,timer())
+root.after(5,main())
+
+root.mainloop()
