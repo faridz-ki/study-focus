@@ -12,3 +12,4 @@
 
 # Knwon issues
 1. If your camera hangs between instances of running study-focus this will cause cv2 to error. Make sure your camera is detached from the previous study-focus instance
+2. Don't click Enter too many times or too quickly
