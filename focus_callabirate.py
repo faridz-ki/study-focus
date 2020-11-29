@@ -40,7 +40,7 @@ class Callibrate(object):
         self.window1.mainloop()
     
     def _initialise_balls(self):
-        for i in range(2):
+        for i in range(len(self.coords)):
             self.circle.append(self.canvas.create_oval(0, 0, 0, 0, outline='white', fill='white'))
 
     def _callabirate(self, event = None):
