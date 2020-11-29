@@ -5,23 +5,31 @@ from tkinter import *
 
 class Callibrate(object):
     def __init__(self):
-        pass
-
-    def get_screen_size(self):
-        return self.screen_size
-    
-    def calibrate(self):
         self.gaze = GazeTracking()
         self.webcam = cv2.VideoCapture(0)
-        self.screen_size = []
+        self.hori = []
+        self.verti = []
         self.circle = []
         self.i = 0
         self.window1 = Tk()
+        pass
+
+    def get_screen_size(self):
+        return [min(self.hori), min(self.verti), max(self.hori), max(self.verti)]
+    
+    def calibrate(self):
         self.window1.attributes('-fullscreen', True)
         self.window1.update_idletasks()
         self.w = self.window1.winfo_screenwidth()
         self.h = self.window1.winfo_screenheight()
-        self.coords = [(10, 10, 30, 30), (self.w-10, self.h-10, self.w-40, self.h-40) ]
+        self.coords = [(10, 10, 30, 30), 
+            (self.w-10, self.h-10, self.w-30, self.h-30), 
+            (self.w/2+10, 10, self.w/2-10, 30), 
+            (self.w/2+10, self.h-10, self.w/2-10, self.h-30), 
+            (10, self.h-10, 30, self.h-30), 
+            (self.w-10, 10, self.w-30, 30), 
+            (10, self.h/2-10, 30, self.h/2+10), 
+            (self.w-10, self.h/2-10, self.w-30, self.h/2+10)]
         self.canvas = Canvas(self.window1, bg='black', width=self.w, height=self.h)
         self.canvas.pack()
         self.display = self.canvas.create_text(self.w/2, self.h/2, fill="white", text="Press enter to start. Look at the white ball.")
@@ -40,8 +48,8 @@ class Callibrate(object):
         _, frame = self.webcam.read()
         self.gaze.refresh(frame)
         frame = self.gaze.annotated_frame()
-        self.screen_size.append(self.gaze.horizontal_ratio())
-        self.screen_size.append(self.gaze.vertical_ratio())
+        self.hori.append(self.gaze.horizontal_ratio())
+        self.verti.append(self.gaze.vertical_ratio())
         self.window1.after(1000, self._success)
 
     def _deleteBall(self):

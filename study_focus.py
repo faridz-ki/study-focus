@@ -105,9 +105,9 @@ def main():
             bad_process = True
 
     if h_ratio and v_ratio:
-        if (1.2*h_ratio < screen_size[0] or h_ratio > 1.2*screen_size[2]) or (1.2*v_ratio  < screen_size[1] or v_ratio > 1.2*screen_size[3]) and not gaze.is_blinking():
+        if (1.1*h_ratio < screen_size[0] or h_ratio > 1.1*screen_size[2]) or (1.1*v_ratio  < screen_size[1] or v_ratio > 1.1*screen_size[3]) and not gaze.is_blinking():
             bad_count = bad_count + 1
-            if bad_count > 5:
+            if bad_count > 10:
                 window2.deiconify()
                 print("Print please")
                 print(bad_count)
@@ -115,7 +115,7 @@ def main():
             elif bad_process:
                 window2.deiconify()
                 canvas2.itemconfigure(success, text="YOU ARE DOING SOMETHING NAUGHTY")
-        elif (1.2*h_ratio > screen_size[0] or h_ratio < 1.2*screen_size[2]) or (1.2*v_ratio > screen_size[1] or v_ratio < 1.2*screen_size[3]) and not gaze.is_blinking():
+        elif (1.1*h_ratio > screen_size[0] or h_ratio < 1.1*screen_size[2]) or (1.1*v_ratio > screen_size[1] or v_ratio < 1.1*screen_size[3]) and not gaze.is_blinking():
             print(bad_count)
             bad_count = 0
             window2.withdraw()
