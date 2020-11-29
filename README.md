@@ -9,3 +9,6 @@
     - In Visual Studio 2017 go to the Individual Components tab, Visual C++ Tools for Cmake, and check the checkbox under the "Compilers, build tools and runtimes" section.
     - ``pip install numpy opencv_python dlib``
 5. In your console, type ``python example.py``.
+
+# Knwon issues
+1. If your camera hangs between instances of running study-focus this will cause cv2 to error. Make sure your camera is detached from the previous study-focus instance
